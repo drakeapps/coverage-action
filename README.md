@@ -43,3 +43,4 @@ jobs:
 | `thresholdModified` | ✅        | the minimal average modified files line coverage | 0.0                    |
 | `passIcon`          | ✅        | the indicator to use for files that passed       | 🟢                      |
 | `failIcon`          | ✅        | the indicator to use for files that failed       | 🔴                      |
+| `title`             | ✅        | the title of the PR comment                      | App Coverage Report    |
