@@ -121,9 +121,12 @@ function parseCoverageReport(report, files) {
     return { averageCover: avgCover, newCover, modifiedCover };
 }
 exports.parseCoverageReport = parseCoverageReport;
+function escapeRegExp(value) {
+    return value.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&');
+}
 function parseFilesCoverage(report, source, files, threshold) {
     const coverages = files === null || files === void 0 ? void 0 : files.map(file => {
-        const fileName = file.replace(`${source}/`, '').replace(/\//g, '\\/');
+        const fileName = escapeRegExp(file.replace(`${source}/`, ''));
         const regex = new RegExp(`.*filename="${fileName}".*line-rate="(?<cover>[0-9]+[.]*[0-9]*)".*`);
         const match = report.match(regex);
         const cover = (match === null || match === void 0 ? void 0 : match.groups) ? parseFloat(match.groups['cover']) : -1;
@@ -228,7 +231,8 @@ function formatFilesTable(cover) {
         ...cover.map(coverFile => {
             const coverPrecent = `${(coverFile.cover * 100).toFixed()}%`;
             const indicator = passOrFailIndicator(coverFile.pass);
-            return [coverFile.file, coverPrecent, indicator];
+            const formatedFile = coverFile.file.replace('_', '\\_');
+            return [formatedFile, coverPrecent, indicator];
         }),
         ['**TOTAL**', avgCover, averageIndicator]
     ], { align: ['l', 'c', 'c'] });
@@ -315,7 +319,7 @@ function run() {
             const filesCoverage = (0, coverage_1.parseCoverageReport)(report, files);
             const passOverall = (0, scorePr_1.scorePr)(filesCoverage);
             if (!passOverall) {
-                core.setFailed('Coverage is lower then configured threshold 😭');
+                core.setFailed('Coverage is lower than configured threshold 😭');
             }
         }
         catch (error) {
@@ -415,15 +419,15 @@ const core = __importStar(__nccwpck_require__(2186));
 const format_1 = __nccwpck_require__(6610);
 const github_1 = __nccwpck_require__(5438);
 const client_1 = __nccwpck_require__(1565);
-const TITLE = `# ☂️ Python Coverage`;
 function publishMessage(pr, message) {
     return __awaiter(this, void 0, void 0, function* () {
-        const body = TITLE.concat(message);
+        const title = `# ${core.getInput('title')}`;
+        const body = title.concat(message);
         core.summary.addRaw(body).write();
         const comments = yield client_1.octokit.rest.issues.listComments(Object.assign(Object.assign({}, github_1.context.repo), { issue_number: pr }));
-        const exist = comments.data.find(commnet => {
+        const exist = comments.data.find(comment => {
             var _a;
-            return (_a = commnet.body) === null || _a === void 0 ? void 0 : _a.startsWith(TITLE);
+            return (_a = comment.body) === null || _a === void 0 ? void 0 : _a.startsWith(title);
         });
         if (exist) {
             yield client_1.octokit.rest.issues.updateComment(Object.assign(Object.assign({}, github_1.context.repo), { issue_number: pr, comment_id: exist.id, body }));
@@ -10673,7 +10677,7 @@ __nccwpck_require__.r(__webpack_exports__);
 /**
  * @typedef Options
  *   Configuration (optional).
- * @property {string|null|Array<string|null|undefined>} [align]
+ * @property {string|null|ReadonlyArray<string|null|undefined>} [align]
  *   One style for all columns, or styles for their respective columns.
  *   Each style is either `'l'` (left), `'r'` (right), or `'c'` (center).
  *   Other values are treated as `''`, which doesn’t place the colon in the
@@ -10818,7 +10822,7 @@ __nccwpck_require__.r(__webpack_exports__);
 /**
  * Generate a markdown ([GFM](https://docs.github.com/en/github/writing-on-github/working-with-advanced-formatting/organizing-information-with-tables)) table..
  *
- * @param {Array<Array<string|null|undefined>>} table
+ * @param {ReadonlyArray<ReadonlyArray<string|null|undefined>>} table
  *   Table data (matrix of strings).
  * @param {Options} [options]
  *   Configuration (optional).

@@ -5,9 +5,8 @@ import {formatAverageTable, formatFilesTable, toPercent} from './format'
 import {context} from '@actions/github'
 import {octokit} from './client'
 
-
 export async function publishMessage(pr: number, message: string): Promise<void> {
-  const title =  `# ${core.getInput('title')}`
+  const title = `# ${core.getInput('title')}`
   const body = title.concat(message)
   core.summary.addRaw(body).write()
 
